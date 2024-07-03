@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('blog_id')->constrained()->onDelete('cascade');
             $table->foreignId('language_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->string('subtitle')->nullable();
+            $table->string('title')->unique();
+            $table->string('slug', 400)->unique();
+            $table->text('subtitle')->nullable();
             $table->text('content');
             $table->timestamps();
         

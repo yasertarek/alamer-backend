@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+use voku\helper\ASCII;
+
 
 class BlogTranslation extends Model
 {
     use HasFactory;
-
-    protected $fillable = ['language_id', 'title', 'subtitle', 'content'];
+    protected $fillable = ['blog_id', 'language_id', 'title', 'subtitle', 'content', 'slug'];
 
     public function blog()
     {

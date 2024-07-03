@@ -3,13 +3,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Blog;
-use App\Models\BlogTranslation;
+use App\Models\Service;
+use App\Models\ServiceTranslation;
 use App\Models\User;
 use App\Models\Language;
 use Faker\Factory as Faker;
 
-class BlogSeeder extends Seeder
+class ServiceSeeder extends Seeder
 {
     public function run()
     {
@@ -17,7 +17,7 @@ class BlogSeeder extends Seeder
         $user = User::first();
         $languages = Language::whereIn('code', ['en', 'ar'])->get();
 
-        $blogs = [
+        $services = [
             'ar' => [
                 [
                     'title' => 'تقنيات حديثة في كشف تسربات المياه: من الاستشعار إلى التصوير الحراري',
@@ -113,7 +113,7 @@ class BlogSeeder extends Seeder
                 ],
                 [
                     'title' => 'كيف تؤثر تسربات المياه على البنية التحتية وكيف يمكن الوقاية منها؟',
-                    'slug' => 'Kaif_toathir_almiyah_ala_albeniya_altahtiya_w_kaif_yomken_alwikaya_minha',
+                    'slug' => 'كيف_تؤثر_تسربات_المياه_على_البنية_التحتية_وكيف_يمكن_الوقاية_منها',
                     'subtitle' => 'تسربات المياه تعتبر من المشكلات الكبرى التي تواجه البنية التحتية في المدن الكبيرة، مثل الرياض. هذه التسربات قد تؤدي إلى أضرار جسيمة تتطلب إصلاحات مكلفة ومعقدة. لذا، يعد كشف تسربات المياه وعزل الأسطح من الخطوات الحيوية للحفاظ على سلامة المباني والبنية التحتية بشكل عام.',
                     'content' => 'تسربات المياه تعتبر من المشكلات الكبرى التي تواجه البنية التحتية في المدن الكبيرة، مثل الرياض. هذه التسربات قد تؤدي إلى أضرار جسيمة تتطلب إصلاحات مكلفة ومعقدة. لذا، يعد كشف تسربات المياه وعزل الأسطح من الخطوات الحيوية للحفاظ على سلامة المباني والبنية التحتية بشكل عام. في هذا المقال، سنستعرض تأثير تسربات المياه على البنية التحتية، وطرق الوقاية منها".
 
@@ -162,29 +162,28 @@ class BlogSeeder extends Seeder
             ]
         ];
         for ($i = 0; $i < 4; $i++) {
-            $blog = Blog::create([
-                'user_id' => $user->id,
+            $service = Service::create([
                 'picture' => 'https://alamer-co.com/imgs/water-leak-detect.jpeg',
                 'is_featured' => $faker->randomKey([true, false])
             ]);
 
             foreach ($languages as $language) {
                 $langCode = $language->code;
-                BlogTranslation::create([
-                    'blog_id' => $blog->id,
+                ServiceTranslation::create([
+                    'service_id' => $service->id,
                     'language_id' => $language->id,
                     'title' => $language->code === 'en'
                         ? $faker->unique()->sentence()
-                        : $blogs['ar'][$i]['title'],
+                        : $services['ar'][$i]['title'],
                     'subtitle' => $language->code === 'en'
-                        ? $blogs['en'][0]['subtitle']
-                        : $blogs['ar'][$i]['subtitle'],
+                        ? $services['en'][0]['subtitle']
+                        : $services['ar'][$i]['subtitle'],
                     'content' => $language->code === 'en'
-                        ? $blogs['en'][0]['content']
-                        : $blogs['ar'][$i]['content'],
+                        ? $services['en'][0]['content']
+                        : $services['ar'][$i]['content'],
                     'slug' => $language->code === 'en'
                         ? $faker->unique()->sentence()
-                        : $blogs['ar'][$i]['slug'],
+                        : $services['ar'][$i]['slug'],
                 ]);
             }
         }
