@@ -14,6 +14,8 @@ class CreateReactionsTable extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['like', 'insightful', 'love', 'angry']);
             $table->timestamps();
+
+            $table->unique(['blog_id', 'user_id']);
         });
     }
 

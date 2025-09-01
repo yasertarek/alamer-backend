@@ -11,12 +11,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LanguageSeeder::class, // Ensure this seeder is called before others
             RoleSeeder::class,
+            CatsSeeder::class,
             AdminSeeder::class,
             UserSeeder::class,
             BlogSeeder::class,
             ServiceSeeder::class,
-            CommentsSeeder::class,
-            ReactionSeeder::class,
+            // CommentsSeeder::class,
+            // ReactionSeeder::class,
+            NavbarSeeder::class,
         ]);
     }
 }

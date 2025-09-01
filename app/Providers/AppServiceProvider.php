@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\OptionalAuth;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
          // Register the middleware
          $this->app->singleton(RoleMiddleware::class);
+         $this->app->singleton(OptionalAuth::class);
     }
 
     /**

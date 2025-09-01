@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+use App\Http\Resources\UserResource;
+
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -47,7 +49,7 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
         }
 
         $user = $request->user();
@@ -60,5 +62,9 @@ class AuthController extends Controller
     {
         $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged out'], 200);
+    }
+    public function user(Request $request)
+    {
+        return new UserResource(Auth::user());
     }
 }

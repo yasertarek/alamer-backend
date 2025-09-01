@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('blogs', function (Blueprint $table) {
+        Schema::create('navbars', function (Blueprint $table) {
             $table->id();
-            $table->string('picture');
-            $table->boolean('is_featured')->default(false);
-            $table->boolean('active')->default(false);
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('link');
+            $table->integer('order')->default(1);
+            $table->enum('group', ['guest', 'user', 'admin']);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('blogs');
+        Schema::dropIfExists('navbars');
     }
 };

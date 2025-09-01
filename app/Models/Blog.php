@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Blog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'picture', 'is_featured'];
+    protected $fillable = ['user_id', 'picture', 'is_featured', 'cats'];
 
     public function user()
     {
@@ -24,6 +25,11 @@ class Blog extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class)->with('user');
+    }
+
+    public function cats()
+    {
+        return $this->belongsToMany(Cats::class, 'cats_blogs');
     }
 
     public function reactions(){

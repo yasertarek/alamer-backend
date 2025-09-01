@@ -7,6 +7,7 @@ use App\Models\Blog;
 use App\Models\BlogTranslation;
 use App\Models\User;
 use App\Models\Language;
+use App\Models\Cats;
 use Faker\Factory as Faker;
 
 class BlogSeeder extends Seeder
@@ -16,6 +17,7 @@ class BlogSeeder extends Seeder
         $faker = Faker::create();
         $user = User::first();
         $languages = Language::whereIn('code', ['en', 'ar'])->get();
+        $catsAll = Cats::all();
 
         $blogs = [
             'ar' => [
@@ -165,8 +167,12 @@ class BlogSeeder extends Seeder
             $blog = Blog::create([
                 'user_id' => $user->id,
                 'picture' => 'https://alamer-co.com/imgs/water-leak-detect.jpeg',
-                'is_featured' => $faker->randomKey([true, false])
+                'is_featured' => $faker->randomKey([true, false]),
+                'active' => rand(0, 1),
             ]);
+
+            $cats = $catsAll->random(rand(1, 3))->pluck('id');
+            $blog->cats()->attach($cats);
 
             foreach ($languages as $language) {
                 $langCode = $language->code;

@@ -145,9 +145,9 @@ class ServiceController extends Controller
         $services = Service::whereHas('translations', function ($query) use ($language, $search) {
             $query->where('language_id', $language->id)
                 ->where(function ($query) use ($search) {
-                    $query->where('title', 'like', '%' . $search . '%')
-                        ->orWhere('subtitle', 'like', '%' . $search . '%')
-                        ->orWhere('content', 'like', '%' . $search . '%');
+                    $query->where('title', 'like', "%$search%")
+                        ->orWhere('subtitle', 'like', "%$search%")
+                        ->orWhere('content', 'like', "%$search%");
                 });
         })
             ->with([

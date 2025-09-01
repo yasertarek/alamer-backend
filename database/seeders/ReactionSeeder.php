@@ -22,10 +22,11 @@ class ReactionSeeder extends Seeder
         $users = User::all();
 
         foreach ($blogs as $blog) {
-            for ($i = 0; $i < rand(1, 5); $i++) {
+            foreach ($users as $user) {
+                # code...
                 Reaction::create([
                     'blog_id' => $blog->id,
-                    'user_id' => $users->random()->id,
+                    'user_id' => $user->id,
                     'type' => $faker->randomElement(["like", "insightful", "love", "angry"]),
                 ]);
             }

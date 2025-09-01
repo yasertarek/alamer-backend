@@ -20,16 +20,19 @@ class BlogController extends Controller
         $languageCode = $request->header('Language-Code', 'ar');
         $searchQuery = $request->input('search');
         $sortOrder = $request->input('sort', 'desc'); // Default to descending if not provided
+        $catsFilter = $request->input('cats'); // New line to get category filter
 
         $language = Language::where('code', $languageCode)->firstOrFail();
 
         $query = Blog::with([
             'user',
+            'cats',
             'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
             }
         ])
             ->withCount(['comments', 'reactions'])
+            ->where('active', 1)
             ->select('blogs.*');
 
         if ($searchQuery) {
@@ -42,6 +45,13 @@ class BlogController extends Controller
                     });
             });
         }
+
+        if ($catsFilter && is_array($catsFilter)) {
+            $query->whereHas('cats', function ($q) use ($catsFilter) {
+                $q->whereIn('cats.id', $catsFilter);
+            });
+        }
+        
 
         $query->orderBy('blogs.created_at', $sortOrder);
 
@@ -67,19 +77,79 @@ class BlogController extends Controller
         return mb_strtolower($tSlug, 'UTF-8');
     }
 
+    public function getSelfBlogs(Request $request)
+    {
+        $userId = Auth::user()->id;
+        $languageCode = $request->header('Language-Code', 'ar');
+        $language = Language::where('code', $languageCode)->firstOrFail();
+
+        $searchQuery = $request->input('search');
+        $sortOrder = $request->input('sort', 'desc'); // Default to descending if not provided
+        $catsFilter = $request->input('cats'); // New line to get category filter
+
+
+        $query = Blog::with([
+            'user',
+            'cats',
+            'translations' => function ($query) use ($language) {
+                $query->where('language_id', $language->id);
+            }
+        ])
+            ->withCount(['comments', 'reactions'])
+            ->select('blogs.*')->where('user_id', $userId);
+
+        if ($searchQuery) {
+            $query->whereHas('translations', function ($q) use ($language, $searchQuery) {
+                $q->where('language_id', $language->id)
+                    ->where(function ($q) use ($searchQuery) {
+                        $q->where('title', 'like', "%$searchQuery%")
+                            ->orWhere('subtitle', 'like', "%$searchQuery%")
+                            ->orWhere('content', 'like', "%$searchQuery%");
+                    });
+            });
+        }
+
+        if ($catsFilter && is_array($catsFilter)) {
+            $query->whereHas('cats', function ($q) use ($catsFilter) {
+                $q->whereIn('cats.id', $catsFilter);
+            });
+        }
+        
+
+        $query->orderBy('blogs.created_at', $sortOrder);
+
+        $blogs = $query->paginate(10); // Adjust the pagination as needed
+
+        return BlogResource::collection($blogs);
+        
+
+        // $blogs = Blog::with([
+        //     'translations' => function ($query) use ($language) {
+        //         $query->where('language_id', $language->id);
+        //     },
+        //     'cats',
+        // ])
+        // ->where('user_id', $userId)
+        // ->paginate(10);
+
+        // return BlogResource::collection($blogs);
+    }
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'picture' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'picture' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'translations' => 'required|array',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:255|unique:blog_translations,title',
             'translations.*.subtitle' => 'required|string|max:255',
             'translations.*.content' => 'required|string',
+            'cats' => 'required|array', // array of category IDs
+            'cats.*' => 'exists:cats,id',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(["message"=> $validator->errors()], 422);
         }
 
         $picturePath = null;
@@ -89,8 +159,12 @@ class BlogController extends Controller
 
         $blog = Blog::create([
             'user_id' => Auth::user()->user_id ?? Auth::id(),
-            'picture' => $picturePath,
+            'picture' => $picturePath 
+            ? asset('storage/' . $picturePath) 
+            : null,
         ]);
+
+        $blog->cats()->attach($request->input('cats'));
 
         foreach ($request->translations as $translation) {
             // $titleExists = BlogTranslation::where('title', $translation['title'])->exists();
@@ -111,7 +185,7 @@ class BlogController extends Controller
             BlogTranslation::create($translation);
         }
 
-        return response()->json(new BlogResource($blog->load('translations')), 201);
+        return response()->json(new BlogResource($blog->load(['translations', 'cats'])), 201);
     }
 
     public function show($slug, Request $request)
@@ -123,10 +197,17 @@ class BlogController extends Controller
             ->where('language_id', $language->id)
             ->firstOrFail();
 
-        $blog = Blog::with(['user', 'comments.user', 'reactions', 'translations' => function ($query) use ($language) {
+        $blog = Blog::with(['user', 'cats','comments.user', 'reactions', 'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
             }])
             ->findOrFail($blogTranslation->blog_id);
+
+          // Check if the authenticated user has reacted to the blog and get the reaction type
+        // $userReactionType = null;
+        // if (auth()->check()) {
+        //     $userReaction = $blog->reactions()->where('user_id', auth()->id())->first();
+        //     $userReactionType = $userReaction ? $userReaction->type : null;
+        // }
 
         // Get recommended blogs
         $recommendedBlogs = Blog::with(['user', 'translations' => function ($query) use ($language) {
