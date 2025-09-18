@@ -98,7 +98,11 @@ Route::prefix('admin')->group(function () {
     Route::post('login', [AdminController::class, 'login']);
     Route::middleware(['auth:sanctum', RoleMiddleware::class . ':moderator,supervisor'])->group(function () {
         Route::post('logout', [AdminController::class, 'logout']);
-        Route::apiResource('blogs', BlogController::class);
+        Route::get('blogs', [BlogController::class, 'getAllBlogs']);
+        Route::post('blogs', [BlogController::class, 'store']);
+        Route::put('blogs/update/{id}', [BlogController::class, 'update']);
+
+        // Route::apiResource('blogs', BlogController::class);
         Route::apiResource('services', ServiceController::class);
         Route::get('website-settings', [WebsiteSettings::class, 'index']);
         Route::post('add-navbar', [NavbarController::class, 'store']);

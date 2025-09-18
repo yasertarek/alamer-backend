@@ -19,6 +19,7 @@ class BlogResource extends JsonResource
             'user_id' => $this->whenLoaded('blog', function () {
                 return $this->blog->user_id;
             }),
+            'active' => $this->active,
             'slug' => $translation ? $translation->slug : null,
             'title' => $translation ? $translation->title : null,
             'subtitle' => $translation ? $translation->subtitle : null,

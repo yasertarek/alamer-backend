@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\Service;
 use App\Models\Navbar;
 use App\Models\Language;
+use App\Models\Cats;
 use Illuminate\Http\Request;
 use App\Http\Resources\NavbarResource;
 use App\Http\Resources\BlogResource;
@@ -70,6 +71,9 @@ class HomeController extends Controller
             ->get();
 
 
+        $cats = Cats::all();
+
+
 
         // $languageCode = $request->header('Language-Code', 'ar'); // Default to 'ar' (Arabic)
 
@@ -97,7 +101,8 @@ class HomeController extends Controller
             'popularBlogs' => BlogResource::collection($popularBlogs),
             'featuredServices' => ServiceResource::collection($featuredServices),
             'recentServices' => ServiceResource::collection($recentServices),
-            "languages" => $languages
+            "languages" => $languages,
+            "cats" => $cats,
         ]);
     }
 
