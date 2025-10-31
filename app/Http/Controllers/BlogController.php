@@ -9,6 +9,8 @@ use App\Http\Resources\BlogResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Gate;
+
 use Illuminate\Support\Facades\Log;
 
 // use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -51,7 +53,7 @@ class BlogController extends Controller
                 $q->whereIn('cats.id', $catsFilter);
             });
         }
-        
+
 
         $query->orderBy('blogs.created_at', $sortOrder);
 
@@ -60,7 +62,7 @@ class BlogController extends Controller
         return BlogResource::collection($blogs);
     }
 
-        public function getALlBlogs(Request $request)
+    public function getALlBlogs(Request $request)
     {
         $languageCode = $request->header('Language-Code', 'ar');
         $searchQuery = $request->input('search');
@@ -83,9 +85,10 @@ class BlogController extends Controller
             ->withCount(['comments', 'reactions'])
             ->select('blogs.*');
 
-            if($stateFilter !== null){
-                $query->where('active', $stateFilter);
-            };
+        if ($stateFilter !== null) {
+            $query->where('active', $stateFilter);
+        }
+        ;
 
         if ($searchQuery) {
             $query->whereHas('translations', function ($q) use ($language, $searchQuery) {
@@ -103,7 +106,7 @@ class BlogController extends Controller
                 $q->whereIn('cats.id', $catsFilter);
             });
         }
-        
+
 
         $query->orderBy('blogs.created_at', $sortOrder);
 
@@ -166,14 +169,14 @@ class BlogController extends Controller
                 $q->whereIn('cats.id', $catsFilter);
             });
         }
-        
+
 
         $query->orderBy('blogs.created_at', $sortOrder);
 
         $blogs = $query->paginate(10); // Adjust the pagination as needed
 
         return BlogResource::collection($blogs);
-        
+
 
         // $blogs = Blog::with([
         //     'translations' => function ($query) use ($language) {
@@ -187,22 +190,99 @@ class BlogController extends Controller
         // return BlogResource::collection($blogs);
     }
 
+    // public function store(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'picture' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+    //         'translations' => 'required|array',
+    //         'translations.*.language_id' => 'required|exists:languages,id',
+    //         'translations.*.title' => 'required|string|max:255|unique:blog_translations,title',
+    //         'translations.*.subtitle' => 'required|string|max:255',
+    //         'translations.*.content' => 'required|string',
+    //         'cats' => 'required|array', // array of category IDs
+    //         'cats.*' => 'exists:cats,id',
+    //     ], [
+    //         'picture.required' => 'صورة المقالة مطلوبة ويجب رفعها.',
+    //         'picture.image' => 'مسموع بملفات الصور فقط.',
+    //         'picture.mimes' => 'يجب أن تكون الصورة من نوع: jpeg,
+    //         png, jpg.',
+    //         'picture.max' => 'لا يمكن أن يزيد حجم الصورة عن 2MB.',
+    //         'translations.*.title.unique' => 'عنوان المقالة يجب أن يكون غير مكرر.',
+    //         'translations.*.language_id.exists' => 'اللغة المختارة غير صحيحة.',
+    //         'translations.*.title.required' => 'عنوان المقالة مطلوب.',
+    //         'translations.*.title.string' => 'يجب أن يكون عنوان المقالة نص فقط.',
+    //         'translations.*.title.max' => 'الحد الأقصى لعنوان المقالة هو 255 حرف.',
+    //         'translations.*.subtitle.required' => 'العنوان الفرعي مطلوب.',
+    //         'translations.*.subtitle.string' => 'يجب أن يكون العنوان الفرعي نص فقط.',
+    //         'translations.*.subtitle.max' => 'الحد الأقصى للعنوان الفرعي هو 255 حرف.',
+    //         'translations.*.content.required' => 'محتوى المقالة مطلوب !',
+    //         'translations.*.content.string' => 'محتوى المقالة نص فقط.',
+    //         'cats.*.exists' => 'احد الأصناف غير صحيح.',
+    //         'cats.required' => 'يجب على الأقل اختيار صتف.',
+    //         'cats.array' => 'يجب أن تكون قائمة من الأصناف.',
+
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(["message" => $validator->errors()], 422);
+    //     }
+
+    //     $picturePath = null;
+    //     if (request()->hasFile('picture')) {
+    //         $picturePath = request()->file('picture')->store('blog_pictures', 'public');
+    //     }
+
+    //     $blog = Blog::create([
+    //         'user_id' => Auth::user()->user_id ?? Auth::id(),
+    //         'picture' => $picturePath
+    //             ? asset('storage/' . $picturePath)
+    //             : null,
+    //     ]);
+
+    //     $blog->cats()->attach($request->input('cats'));
+
+    //     foreach ($request->translations as $translation) {
+    //         // $titleExists = BlogTranslation::where('title', $translation['title'])->exists();
+    //         // if ($titleExists) {
+    //         //     return response()->json(['error' => 'The blog title has already been taken.'], 422);
+    //         // }
+    //         $blogTranslationSlug = static::generateSlug($translation['title']);
+    //         // Check if slug is unique
+    //         $slugExists = BlogTranslation::where('slug', $blogTranslationSlug)->exists();
+    //         if ($slugExists) {
+    //             return response()->json(['error' => 'The blog slug has already been taken.'], 422);
+    //         }
+
+    //         // $language = Language::where('code', $translation['language_code'])->first();
+
+    //         $translation['blog_id'] = $blog->id;
+    //         $translation['slug'] = $blogTranslationSlug;
+    //         BlogTranslation::create($translation);
+    //     }
+
+    //     return response()->json(new BlogResource($blog->load(['translations', 'cats'])), 201);
+    // }
+
+
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'picture' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+
+        if (Gate::denies('create', Blog::class)) {
+            return response()->json(['message' => 'Only admins can create blogs.'], 403);
+        }
+        $validated = $request->validate([
+            'picture' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'translations' => 'required|array',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:255|unique:blog_translations,title',
             'translations.*.subtitle' => 'required|string|max:255',
             'translations.*.content' => 'required|string',
-            'cats' => 'required|array', // array of category IDs
+            'cats' => 'required|array',
             'cats.*' => 'exists:cats,id',
         ], [
             'picture.required' => 'صورة المقالة مطلوبة ويجب رفعها.',
-            'picture.image' => 'مسموع بملفات الصور فقط.',
-            'picture.mimes' => 'يجب أن تكون الصورة من نوع: jpeg,
-            png, jpg.',
+            'picture.image' => 'مسموح بملفات الصور فقط.',
+            'picture.mimes' => 'يجب أن تكون الصورة من نوع: jpeg, png, jpg, gif.',
             'picture.max' => 'لا يمكن أن يزيد حجم الصورة عن 2MB.',
             'translations.*.title.unique' => 'عنوان المقالة يجب أن يكون غير مكرر.',
             'translations.*.language_id.exists' => 'اللغة المختارة غير صحيحة.',
@@ -215,49 +295,51 @@ class BlogController extends Controller
             'translations.*.content.required' => 'محتوى المقالة مطلوب !',
             'translations.*.content.string' => 'محتوى المقالة نص فقط.',
             'cats.*.exists' => 'احد الأصناف غير صحيح.',
-            'cats.required' => 'يجب على الأقل اختيار صتف.',
+            'cats.required' => 'يجب على الأقل اختيار صنف.',
             'cats.array' => 'يجب أن تكون قائمة من الأصناف.',
-            
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(["message"=> $validator->errors()], 422);
-        }
+        // ✅ Handle picture upload
+        $picturePath = $request->file('picture')->store('blogs', 'public');
 
-        $picturePath = null;
-        if (request()->hasFile('picture')) {
-            $picturePath = request()->file('picture')->store('blog_pictures', 'public');
-        }
+        $active = Auth::user()->role ? 1 : 0;
 
+        // ✅ Create blog
         $blog = Blog::create([
-            'user_id' => Auth::user()->user_id ?? Auth::id(),
-            'picture' => $picturePath 
-            ? asset('storage/' . $picturePath) 
-            : null,
+            'user_id' => Auth::id(),
+            'picture' => $picturePath,
+            'active' => $active,
+            'published_at' => $active ? now() : null,
         ]);
 
-        $blog->cats()->attach($request->input('cats'));
+        // ✅ Attach categories
+        $blog->cats()->attach($validated['cats']);
 
-        foreach ($request->translations as $translation) {
-            // $titleExists = BlogTranslation::where('title', $translation['title'])->exists();
-            // if ($titleExists) {
-            //     return response()->json(['error' => 'The blog title has already been taken.'], 422);
-            // }
-            $blogTranslationSlug = static::generateSlug($translation['title']);
-            // Check if slug is unique
-            $slugExists = BlogTranslation::where('slug', $blogTranslationSlug)->exists();
-            if ($slugExists) {
-                return response()->json(['error' => 'The blog slug has already been taken.'], 422);
+        // ✅ Create translations with unique slug
+        foreach ($validated['translations'] as $translation) {
+            $slug = static::generateSlug($translation['title']);
+
+            // Ensure slug uniqueness (add suffix if needed)
+            $originalSlug = $slug;
+            $counter = 1;
+            while (BlogTranslation::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter++;
             }
 
-            // $language = Language::where('code', $translation['language_code'])->first();
-
-            $translation['blog_id'] = $blog->id;
-            $translation['slug'] = $blogTranslationSlug;
-            BlogTranslation::create($translation);
+            BlogTranslation::create([
+                'blog_id' => $blog->id,
+                'language_id' => $translation['language_id'],
+                'title' => $translation['title'],
+                'subtitle' => $translation['subtitle'],
+                'content' => $translation['content'],
+                'slug' => $slug,
+            ]);
         }
 
-        return response()->json(new BlogResource($blog->load(['translations', 'cats'])), 201);
+        return response()->json([
+            'message' => 'Blog created successfully ✅',
+            'data' => new BlogResource($blog->load(['translations', 'cats']))
+        ], 201);
     }
 
     public function show($slug, Request $request)
@@ -269,12 +351,18 @@ class BlogController extends Controller
             ->where('language_id', $language->id)
             ->firstOrFail();
 
-        $blog = Blog::with(['user', 'cats','comments.user', 'reactions', 'translations' => function ($query) use ($language) {
+        $blog = Blog::with([
+            'user',
+            'cats',
+            'comments.user',
+            'reactions',
+            'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
-            }])
+            }
+        ])
             ->findOrFail($blogTranslation->blog_id);
 
-          // Check if the authenticated user has reacted to the blog and get the reaction type
+        // Check if the authenticated user has reacted to the blog and get the reaction type
         // $userReactionType = null;
         // if (auth()->check()) {
         //     $userReaction = $blog->reactions()->where('user_id', auth()->id())->first();
@@ -282,9 +370,12 @@ class BlogController extends Controller
         // }
 
         // Get recommended blogs
-        $recommendedBlogs = Blog::with(['user', 'translations' => function ($query) use ($language) {
+        $recommendedBlogs = Blog::with([
+            'user',
+            'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
-            }])
+            }
+        ])
             ->where('active', 1)
             ->withCount(['comments', 'reactions'])
             ->where('id', '!=', $blog->id) // Exclude the current blog
@@ -298,47 +389,122 @@ class BlogController extends Controller
         ]);
     }
 
-    public function update($id, Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'translations' => 'required|array',
-            'translations.*.language_id' => 'required|exists:languages,id',
-            'translations.*.title' => 'required|string|max:255',
-            'translations.*.subtitle' => 'required|string|max:255',
-            'translations.*.content' => 'required|string',
-        ]);
+    // public function update($id, Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'user_id' => 'required|exists:users,id',
+    //         'translations' => 'required|array',
+    //         'translations.*.language_id' => 'required|exists:languages,id',
+    //         'translations.*.title' => 'required|string|max:255',
+    //         'translations.*.subtitle' => 'required|string|max:255',
+    //         'translations.*.content' => 'required|string',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+
+    //     $blog = Blog::findOrFail($id);
+    //     $user = Auth::user();
+    //     if($blog->user_id !== $user->id){
+    //         if(!$user->role){
+    //             return response()->json(['message' => 'Unauthorized'], 403);
+    //         }
+    //     }else{
+    //         $blog->active = 0;
+    //     }
+    //     // if ($user->cannot('update', $blog)) {
+    //     //     return response()->json(['message' => 'Unauthorized'], 403);
+    //     // }
+
+    //     // $blog->update([
+    //     //     'user_id' => $request->user_id,
+    //     // ]);
+
+    //     foreach ($request->translations as $translation) {
+    //         $language = Language::where('code', $translation['language_code'])->first();
+
+    //         $blogTranslation = BlogTranslation::where('blog_id', $blog->id)
+    //             ->where('language_id', $language->id)
+    //             ->first();
+
+    //         if ($blogTranslation) {
+    //             $blogTranslation->update([
+    //                 'title' => $translation['title'],
+    //                 'subtitle' => $translation['subtitle'],
+    //                 'content' => $translation['content'],
+    //             ]);
+    //         } else {
+    //             BlogTranslation::create([
+    //                 'blog_id' => $blog->id,
+    //                 'language_id' => $language->id,
+    //                 'title' => $translation['title'],
+    //                 'subtitle' => $translation['subtitle'],
+    //                 'content' => $translation['content'],
+    //             ]);
+    //         }
+    //     }
+
+    //     return response()->json(new BlogResource($blog->load('translations')));
+    // }
+
+
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'user_id' => 'sometimes|exists:users,id',
+            'picture' => ['sometimes', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'translations' => 'sometimes|array',
+            'translations.*.language_id' => 'required_with:translations|exists:languages,id',
+            'translations.*.title' => 'sometimes|string|max:255',
+            'translations.*.subtitle' => 'sometimes|string|max:255',
+            'translations.*.content' => 'sometimes|string',
+        ]);
 
         $blog = Blog::findOrFail($id);
-        $blog->update([
-            'user_id' => $request->user_id,
-        ]);
+        $user = Auth::user();
 
-        foreach ($request->translations as $translation) {
-            $language = Language::where('code', $translation['language_code'])->first();
+        // ✅ Use policy for clean authorization
+        if ($user->cannot('update', $blog)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
-            $blogTranslation = BlogTranslation::where('blog_id', $blog->id)
-                ->where('language_id', $language->id)
-                ->first();
+        // ✅ If updating by owner, deactivate blog
+        if ($blog->user_id === $user->id) {
+            $blog->update(['active' => false]);
+        }
 
-            if ($blogTranslation) {
-                $blogTranslation->update([
-                    'title' => $translation['title'],
-                    'subtitle' => $translation['subtitle'],
-                    'content' => $translation['content'],
-                ]);
-            } else {
-                BlogTranslation::create([
-                    'blog_id' => $blog->id,
-                    'language_id' => $language->id,
-                    'title' => $translation['title'],
-                    'subtitle' => $translation['subtitle'],
-                    'content' => $translation['content'],
-                ]);
+        // ✅ Update blog base data (only if provided)
+        if (isset($validated['user_id'])) {
+            $blog->update(['user_id' => $validated['user_id']]);
+        }
+
+        // ✅ Handle image update
+        if ($request->hasFile('image')) {
+            // delete old image if exists
+            if ($blog->image && \Storage::disk('public')->exists($blog->image)) {
+                \Storage::disk('public')->delete($blog->image);
+            }
+
+            // store new image
+            $path = $request->file('image')->store('blogs', 'public');
+            $blog->image = $path;
+        }
+
+        // ✅ Update translations if provided
+        if (!empty($validated['translations'])) {
+            foreach ($validated['translations'] as $translation) {
+                BlogTranslation::updateOrCreate(
+                    [
+                        'blog_id' => $blog->id,
+                        'language_id' => $translation['language_id'],
+                    ],
+                    array_filter([ // remove nulls if not provided
+                        'title' => $translation['title'] ?? null,
+                        'subtitle' => $translation['subtitle'] ?? null,
+                        'content' => $translation['content'] ?? null,
+                    ])
+                );
             }
         }
 
@@ -392,9 +558,12 @@ class BlogController extends Controller
         $language = Language::where('code', $languageCode)->firstOrFail();
 
         // Assume a simple recommendation based on the most recent blogs in the same language
-        $recommendedBlogs = Blog::with(['user', 'translations' => function ($query) use ($language) {
+        $recommendedBlogs = Blog::with([
+            'user',
+            'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
-            }])
+            }
+        ])
             ->where('active', 1)
             ->orderBy('created_at', 'desc')
             ->take(3)
@@ -424,7 +593,7 @@ class BlogController extends Controller
 
         return response()->json($result);
     }
-    public function accept(Request $request, $id)
+    public function approve(Request $request, $id)
     {
         $blog = Blog::find($id);
         if (!$blog) {
@@ -459,7 +628,7 @@ class BlogController extends Controller
             'cats.*.exists' => 'احد الأصناف غير صحيح.',
             'cats.sometimes' => 'يجب على الأقل اختيار صتف.',
             'cats.array' => 'يجب أن تكون قائمة من الأصناف.',
-            
+
         ]);
 
 
@@ -473,25 +642,26 @@ class BlogController extends Controller
         //     'user_id' => $request->user_id,
         // ]);
         $blog->active = 1;
+        $blog->published_at = now();
         if ($request->hasFile('picture')) {
             $picturePath = $request->file('picture')->store('blog_pictures', 'public');
-            $blog->picture = $picturePath 
-            ? asset('storage/' . $picturePath) 
-            : $blog->picture;
+            $blog->picture = $picturePath
+                ? asset('storage/' . $picturePath)
+                : $blog->picture;
         }
 
         if ($request->has('cats')) {
             $blog->cats()->sync($request->input('cats'));
         }
 
-        if($request->has('translations')){
+        if ($request->has('translations')) {
             foreach ($request->translations as $translation) {
                 $language = Language::where('code', $translation['language_code'])->first();
-    
+
                 $blogTranslation = BlogTranslation::where('blog_id', $blog->id)
                     ->where('language_id', $language->id)
                     ->first();
-    
+
                 if ($blogTranslation) {
                     $blogTranslation->update([
                         'title' => $translation['title'],

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('profile_picture')->default('default/profile.png');
             $table->string('email')->unique();
+            $table->enum("role", ['user', 'moderator', 'supervisor'])->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('suspended')->default(false);

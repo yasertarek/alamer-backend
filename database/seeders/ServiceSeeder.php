@@ -16,6 +16,12 @@ class ServiceSeeder extends Seeder
         $faker = Faker::create();
         $user = User::first();
         $languages = Language::whereIn('code', ['en', 'ar'])->get();
+        $pictures = [
+            's1.jpeg',
+            's2.png',
+            's3.png',
+            's4.jpg',
+        ];
 
         $services = [
             'ar' => [
@@ -163,7 +169,7 @@ class ServiceSeeder extends Seeder
         ];
         for ($i = 0; $i < 4; $i++) {
             $service = Service::create([
-                'picture' => 'https://alamer-co.com/imgs/water-leak-detect.jpeg',
+                'picture' => asset('storage/service_pictures/' . $pictures[$i]),
                 'is_featured' => $faker->randomKey([true, false])
             ]);
 

@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
             LanguageSeeder::class, // Ensure this seeder is called before others
             RoleSeeder::class,
             CatsSeeder::class,
-            AdminSeeder::class,
+            // AdminSeeder::class,
             UserSeeder::class,
             BlogSeeder::class,
             ServiceSeeder::class,

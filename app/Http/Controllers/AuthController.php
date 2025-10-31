@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\QueryException;
 
 use App\Http\Resources\UserResource;
 
@@ -48,14 +49,19 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
-        }
+        try {
+            if (Auth::guard('web')->attempt($request->only('email', 'password'))) {
+                $user = Auth::guard('web')->user();
+                $token = $user->createToken('auth_token')->plainTextToken;
+                return response()->json(['token' => $token], 200);
+            }
+        } catch (QueryException $e) {
+        return response()->json(['message' => 'بيانات دخول غير صحيحة', 'error' => $e], 401);
+    }
 
-        $user = $request->user();
-        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token], 200);
+        return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
+
     }
 
     public function logout(Request $request)

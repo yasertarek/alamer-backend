@@ -62,4 +62,15 @@ class User extends Authenticatable
         return $this->hasMany(reactions::class);
     }
 
+        // Role helpers
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['moderator', 'supervisor']);
+    }
+
+    public function isRegular(): bool
+    {
+        return $this->role === 'user';
+    }
+
 }

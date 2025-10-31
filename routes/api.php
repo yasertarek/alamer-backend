@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+// Controllers
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\AuthController;
@@ -8,15 +10,18 @@ use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebsiteSettings;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\PageController;
+
+// Middleares
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\OptionalAuth;
 // use App\Http\Middleware\EnsureBlogOwner;
 use App\Http\Controllers\NavbarController;
 
 
-use App\Http\Controllers\HomeController;
 
-use App\Http\Controllers\SeoController;
 
 Route::post('/seo/analyze', [SeoController::class, 'analyze']);
 
@@ -40,9 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('blogs/{blogId}/reactions/update', [ReactionController::class, 'update']);
     Route::delete('blogs/{blogId}/reactions/delete', [ReactionController::class, 'destroy']);
 
-    Route::post('/user/blogs', [BlogController::class, 'store']);
-    Route::put('/user/blogs/{id}', [BlogController::class, 'update']);
-    Route::delete('/user/blogs/{id}', [BlogController::class, 'destroy']);
+    // Route::post('/user/blogs', [BlogController::class, 'store']);
+    // Route::put('/user/blogs/{id}', [BlogController::class, 'update']);
+    // Route::delete('/user/blogs/{id}', [BlogController::class, 'destroy']);
 
 
     Route::get('/get-self-blogs', [BlogController::class, 'getSelfBlogs']);
@@ -101,6 +106,8 @@ Route::prefix('admin')->group(function () {
         Route::get('blogs', [BlogController::class, 'getAllBlogs']);
         Route::post('blogs', [BlogController::class, 'store']);
         Route::put('blogs/update/{id}', [BlogController::class, 'update']);
+        Route::post('blogs/approve', [BlogController::class, 'approve']);
+
 
         // Route::apiResource('blogs', BlogController::class);
         Route::apiResource('services', ServiceController::class);
@@ -119,3 +126,6 @@ Route::prefix('admin')->group(function () {
     //     Route::post('users/{user}/suspend', [UserController::class, 'suspend']);
     // });
 });
+
+
+Route::get('/pages/{slug}', [PageController::class, 'show']);

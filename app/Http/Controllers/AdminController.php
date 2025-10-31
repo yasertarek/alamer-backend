@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+
 
 use Illuminate\Support\Facades\Auth;
 
@@ -81,14 +83,19 @@ class AdminController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::guard('admin')->attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        try {
+            if (Auth::guard('admin')->attempt($request->only('email', 'password'))) {
+                $admin = Auth::guard('admin')->user();
+                $token = $admin->createToken('token', ['admin'])->plainTextToken;
+
+                return response()->json(['token' => $token]);
+            }else{
+                return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
+            }
+
+        } catch (QueryException $e) {
+            return response()->json(['message' => 'بيانات دخول غير صحيحة', 'error' => $e], 401);
         }
-
-        $admin = Auth::guard('admin')->user();
-        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
-
-        return response()->json(['token' => $token]);
     }
 
     public function logout()

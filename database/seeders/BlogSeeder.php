@@ -18,6 +18,12 @@ class BlogSeeder extends Seeder
         $user = User::first();
         $languages = Language::whereIn('code', ['en', 'ar'])->get();
         $catsAll = Cats::all();
+        $pictures = [
+            'blog-1.jpg',
+            'blog-2.jpeg',
+            'blog-3.jpeg',
+            'blog-4.jpeg',
+        ];
 
         $blogs = [
             'ar' => [
@@ -166,9 +172,10 @@ class BlogSeeder extends Seeder
         for ($i = 0; $i < 4; $i++) {
             $blog = Blog::create([
                 'user_id' => $user->id,
-                'picture' => 'https://alamer-co.com/imgs/water-leak-detect.jpeg',
+                'picture' => asset('storage/blog_pictures/' . $pictures[$i]),
                 'is_featured' => $faker->randomKey([true, false]),
                 'active' => rand(0, 1),
+                'published_at' => null
             ]);
 
             $cats = $catsAll->random(rand(1, 3))->pluck('id');

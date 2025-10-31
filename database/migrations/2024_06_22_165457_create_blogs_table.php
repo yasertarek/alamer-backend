@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('picture');
             $table->boolean('is_featured')->default(false);
             $table->boolean('active')->default(false);
+            $table->date('published_at')->nullable()->default(null);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });

@@ -30,7 +30,9 @@ class HomeController extends Controller
             ->get();
 
         // Fetch recent blogs
-        $recentBlogs = Blog::with(['user',
+        $recentBlogs = Blog::with(['user' => function ($query) {
+    $query->select('id', 'name'); // Only load these columns
+},
             'translations' => function ($query) {
                 $query->where('language_id', $this->getLanguageId());
             }

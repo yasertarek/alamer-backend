@@ -66,11 +66,13 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', App\Models\RegularUser::class),
+            'table' => 'regular_users_view', // uses view instead of full table
         ],
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
+            'table' => 'admins_view', // uses view instead of full table
         ],
 
         // 'users' => [

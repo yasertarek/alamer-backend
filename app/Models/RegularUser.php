@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Admin extends User
+class RegularUser extends User
+
 {
-    protected $connection = 'mysql_admin';
-    protected $table = 'admins_view';
+    protected $connection = 'mysql_regular';
+    protected $table = 'regular_users_view';
     protected $guarded = [];
     public $timestamps = true;
 }
