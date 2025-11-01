@@ -59,18 +59,18 @@ class User extends Authenticatable
     }
 
     public function reactions(){
-        return $this->hasMany(reactions::class);
+        return $this->hasMany(Reaction::class);
     }
 
         // Role helpers
-    public function isAdmin(): bool
-    {
-        return in_array($this->role, ['moderator', 'supervisor']);
-    }
+    // public function isAdmin(): bool
+    // {
+    //     return in_array($this->role, ['moderator', 'supervisor']);
+    // }
 
-    public function isRegular(): bool
-    {
-        return $this->role === 'user';
-    }
+    // public function isRegular(): bool
+    // {
+    //     return $this->role === 'user';
+    // }
 
 }

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\QueryException;
+
+use App\Models\User;
 
 use App\Http\Resources\UserResource;
 
@@ -14,54 +15,40 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        $data = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|confirmed',
         ]);
-
-        $profilePicturePath = null;
-        if ($request->hasFile('profile_picture')) {
-            $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
-        }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'profile_picture' => $profilePicturePath,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            'type' => 'regular',
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('user_token')->plainTextToken;
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+        return response()->json(['user' => $user, 'token' => $token]);
     }
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
+        $data = $request->validate([
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        try {
-            if (Auth::guard('web')->attempt($request->only('email', 'password'))) {
-                $user = Auth::guard('web')->user();
-                $token = $user->createToken('auth_token')->plainTextToken;
-                return response()->json(['token' => $token], 200);
-            }
-        } catch (QueryException $e) {
-        return response()->json(['message' => 'بيانات دخول غير صحيحة', 'error' => $e], 401);
-    }
+        $user = User::where('email', $data['email'])->where('role', 'user')->first();
 
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 
-        return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
+        $token = $user->createToken('user_token', ['user'])->plainTextToken;
 
+        return response()->json(['user' => $user, 'token' => $token]);
     }
 
     public function logout(Request $request)

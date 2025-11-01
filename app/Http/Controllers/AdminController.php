@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\QueryException;
@@ -16,7 +15,7 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $admins = Admin::paginate(10);
+        $admins = User::paginate(10);
         return response()->json($admins);
     }
 
@@ -36,7 +35,7 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $admin = Admin::create([
+        $admin = User::create([
             'name' => $request->name,
             'user_id' => $user->id,
             'email' => $request->email,
@@ -46,18 +45,18 @@ class AdminController extends Controller
 
         $admin->assignRole($request->role);
 
-        return response()->json(['message' => 'Admin registered successfully'], 201);
+        return response()->json(['message' => 'User registered successfully'], 201);
     }
 
     public function show($id)
     {
-        $admin = Admin::where('role', 'admin')->findOrFail($id);
+        $admin = User::where('role', 'admin')->findOrFail($id);
         return response()->json($admin);
     }
 
     public function update(Request $request, $id)
     {
-        $admin = Admin::where('role', 'admin')->findOrFail($id);
+        $admin = User::where('role', 'admin')->findOrFail($id);
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -76,26 +75,42 @@ class AdminController extends Controller
         return response()->json($admin);
     }
 
+    public function register(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|confirmed',
+        ]);
+
+        $admin = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            'type' => 'admin',
+        ]);
+
+        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        return response()->json(['user' => $admin, 'token' => $token]);
+    }
+
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
+        $data = $request->validate([
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        try {
-            if (Auth::guard('admin')->attempt($request->only('email', 'password'))) {
-                $admin = Auth::guard('admin')->user();
-                $token = $admin->createToken('token', ['admin'])->plainTextToken;
+        $admin = User::where('email', $data['email'])->whereIn('role', ['supervisor', 'moderator'])->first();
 
-                return response()->json(['token' => $token]);
-            }else{
-                return response()->json(['message' => 'بيانات دخول غير صحيحة'], 401);
-            }
-
-        } catch (QueryException $e) {
-            return response()->json(['message' => 'بيانات دخول غير صحيحة', 'error' => $e], 401);
+        if (!$admin || !Hash::check($data['password'], $admin->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
+
+        $token = $admin->createToken('admin_token', ['admin'])->plainTextToken;
+
+        return response()->json(['user' => $admin, 'token' => $token]);
     }
 
     public function logout()
@@ -106,7 +121,7 @@ class AdminController extends Controller
 
     public function destroy($id)
     {
-        $admin = Admin::where('role', 'admin')->findOrFail($id);
+        $admin = User::where('role', 'admin')->findOrFail($id);
         $admin->delete();
         return response()->json(null, 204);
     }
