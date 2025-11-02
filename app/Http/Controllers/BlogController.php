@@ -337,7 +337,7 @@ class BlogController extends Controller
         }
 
         return response()->json([
-            'message' => 'Blog created successfully ✅',
+            'message' => 'تم نشر المقالة بنجاح !',
             'data' => new BlogResource($blog->load(['translations', 'cats']))
         ], 201);
     }
@@ -465,14 +465,16 @@ class BlogController extends Controller
         $user = Auth::user();
 
         // ✅ Use policy for clean authorization
-        if ($user->cannot('update', $blog)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        // if ($user->cannot('update', $blog)) {
+        //     return response()->json(['message' => 'Unauthorized'], 403);
+        // }
 
         // ✅ If updating by owner, deactivate blog
-        if ($blog->user_id === $user->id) {
-            $blog->update(['active' => false]);
-        }
+        // if ($blog->user_id === $user->id) {
+        //     $blog->update(['active' => false]);
+        // }
+        
+        $blog->update(['active' => true]);
 
         // ✅ Update blog base data (only if provided)
         if (isset($validated['user_id'])) {
@@ -508,15 +510,15 @@ class BlogController extends Controller
             }
         }
 
-        return response()->json(new BlogResource($blog->load('translations')));
+        return response()->json(["blog" => new BlogResource($blog->load(['translations', 'user', 'cats'])), "message" => "تم تحديث المقالة بنجاح !"]);
     }
 
     public function destroy($id)
     {
         $blog = Blog::find($id);
+        if(!$blog) return response()->json(["message" => "المقالة غير موجودة او تم حذفها بالفعل !"], 404);
         $blog->delete();
-
-        return response()->json(null, 204);
+        return response()->json(["message" => "تم حذف المقالة بنجاح!"], 200);
     }
 
     public function search(Request $request)

@@ -105,7 +105,7 @@ class AdminController extends Controller
         $admin = User::where('email', $data['email'])->whereIn('role', ['supervisor', 'moderator'])->first();
 
         if (!$admin || !Hash::check($data['password'], $admin->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'خطأ في عنوان البريد او كلمة المرور.'], 401);
         }
 
         $token = $admin->createToken('admin_token', ['admin'])->plainTextToken;
