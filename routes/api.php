@@ -107,6 +107,8 @@ Route::prefix('admin')->group(function () {
         Route::post('blogs', [BlogController::class, 'store']);
         Route::put('blogs/update/{id}', [BlogController::class, 'update']);
         Route::post('blogs/approve', [BlogController::class, 'approve']);
+        Route::delete('blogs/{id}', [BlogController::class, 'destroy']);
+        
 
 
         // Route::apiResource('blogs', BlogController::class);
