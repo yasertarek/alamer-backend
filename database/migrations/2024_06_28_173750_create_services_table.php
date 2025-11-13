@@ -12,6 +12,8 @@ class CreateServicesTable extends Migration
             $table->id();
             $table->string('picture');
             $table->boolean('is_featured')->default(false);
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\Language;
 use App\Models\ServiceTranslation;
 use App\Http\Resources\ServiceResource;
+use Illuminate\Support\Facades\Auth;
 
 
 class ServiceController extends Controller
@@ -16,7 +17,7 @@ class ServiceController extends Controller
         $languageCode = $request->header('Language-Code', 'ar');
         $language = Language::where('code', $languageCode)->first();
         $searchQuery = $request->input('search');
-
+        $perPage = $request->input('per_page', 10);
         if (!$language) {
             return response()->json(['message' => 'Language not supported.'], 400);
         }
@@ -25,7 +26,9 @@ class ServiceController extends Controller
         $query = Service::with([
             'translations' => function ($query) use ($language) {
                 $query->where('language_id', $language->id);
-            }
+            },
+            'user',
+            'rates'
         ])->select('services.*');
 
 
@@ -40,7 +43,7 @@ class ServiceController extends Controller
             });
         }
 
-        $services = $query->paginate(10);
+        $services = $query->paginate($perPage);
 
         return ServiceResource::collection($services);
     }
@@ -58,6 +61,8 @@ class ServiceController extends Controller
 
         $service = new Service();
 
+        $service->user_id = Auth::id();
+
         if ($request->hasFile('picture')) {
             $service->picture = $request->file('picture')->store('service_pictures', 'public');
         }
@@ -69,7 +74,7 @@ class ServiceController extends Controller
             ServiceTranslation::create($translation);
         }
 
-        return response()->json($service->load('translations'), 201);
+        return response()->json(["data" => $service->load('translations'), "message" => "تم إنشاء الخدمة بنجاح !"], 201);
     }
 
     public function show($slug, Request $request)
@@ -121,7 +126,7 @@ class ServiceController extends Controller
             }
         }
 
-        return response()->json($service->load('translations'));
+        return response()->json(["data" => new ServiceResource($service->load('translations')), "message" => "تم تحديث الخدمة بنجاح !"], 200);
     }
 
     public function destroy($id)
@@ -136,6 +141,7 @@ class ServiceController extends Controller
     {
         $search = $request->input('search');
         $languageCode = $request->header('Language-Code');
+        $perPage = $request->input('per_page', 10); // New line to get per_page parameter, default to 10 if not provided
         $language = Language::where('code', $languageCode)->first();
 
         if (!$language) {
@@ -155,7 +161,7 @@ class ServiceController extends Controller
                     $query->where('language_id', $language->id);
                 },
             ])
-            ->paginate(10);
+            ->paginate($perPage);
 
         if ($services->isEmpty()) {
             return response()->json(['message' => 'No results found'], 404);

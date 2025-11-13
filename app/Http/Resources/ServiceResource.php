@@ -12,10 +12,20 @@ class ServiceResource extends JsonResource
         $data = [
             'id' => $this->id,
             'picture' => $this->picture,
+            'active' => $this->active,
             'slug' => $translation ? $translation->slug : null,
             'title' => $translation ? $translation->title : null,
             'subtitle' => $translation ? $translation->subtitle : null,
             'content' => $translation ? $translation->content : null,
+            'createdAt' => $this->created_at,
+            "medianRating" => $this->median_rating,
+            "totalRating" => $this->count_rating,
+            "ratingMetrics" => $this->rating_metrics,
+            'language' => $translation ? $translation->language : null,
+            'rates' => RateResource::collection($this->whenLoaded('rates')),
+            'user' => $this->whenLoaded('user', function () {
+                return new UserResource($this->user);
+            }),
         ];
         return $data;
 

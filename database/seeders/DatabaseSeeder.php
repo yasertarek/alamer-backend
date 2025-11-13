@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             BlogSeeder::class,
             ServiceSeeder::class,
+            OrdersSeeder::class,
             // CommentsSeeder::class,
             // ReactionSeeder::class,
             NavbarSeeder::class,

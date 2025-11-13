@@ -62,6 +62,11 @@ class User extends Authenticatable
         return $this->hasMany(Reaction::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
         // Role helpers
     // public function isAdmin(): bool
     // {

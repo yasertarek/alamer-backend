@@ -20,7 +20,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'emailVerfiedAt' => $this->email_verfied_at,
-            'profilePicture' => $this->profile_picture ? url('storage/' . $this->profile_picture) : null,
+            'profilePicture' => $this->profile_picture,
         ];
     }
 }

@@ -172,7 +172,7 @@ class BlogSeeder extends Seeder
         for ($i = 0; $i < 4; $i++) {
             $blog = Blog::create([
                 'user_id' => $user->id,
-                'picture' => asset('storage/blog_pictures/' . $pictures[$i]),
+                'picture' => 'blog_pictures/' . $pictures[$i],
                 'is_featured' => $faker->randomKey([true, false]),
                 'active' => rand(0, 1),
                 'published_at' => null
