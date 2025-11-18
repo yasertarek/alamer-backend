@@ -89,4 +89,18 @@ class Service extends Model
         // Return array indexed from 0 (to match JS style [1★, 2★, ..., 5★])
         return array_values($metrics);
     }
+
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function ordersCount()
+    {
+        return $this->hasMany(Order::class)
+            ->selectRaw('service_id, COUNT(*) as aggregate')
+            ->groupBy('service_id');
+    }
+
 }

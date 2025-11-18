@@ -20,8 +20,9 @@ use App\Http\Middleware\OptionalAuth;
 // use App\Http\Middleware\EnsureBlogOwner;
 use App\Http\Controllers\NavbarController;
 
+use App\Http\Controllers\VisitController;
 
-
+Route::post('/track-visit', [VisitController::class, 'track']);
 
 Route::post('/seo/analyze', [SeoController::class, 'analyze']);
 
@@ -35,6 +36,11 @@ Route::get('/navbar', [NavbarController::class, 'index']);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('sitemap', [PageController::class, 'sitemap']);
+
+Route::get('prerender-routes', [PageController::class, 'prerenderRoutes']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'user']);

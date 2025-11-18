@@ -16,6 +16,10 @@ class CreateServiceTranslationsTable extends Migration
             $table->text('subtitle');
             $table->text('content');
             $table->string('slug', 400)->unique();
+            $table->string('meta_title')->nullable();
+            $table->text('meta_description')->nullable();
+            $table->string('meta_keywords')->nullable();
+            $table->string('address');
             $table->timestamps();
         });
     }

@@ -4,63 +4,204 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+use App\Models\Language;
+use App\Models\BlogTranslation;
+use App\Models\ServiceTranslation;
+use App\Models\Blog;
+use App\Models\User;
+use App\Models\Visit;
 
 class PageController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a page by its slug.
+     */
+    public function show(string $slug)
+    {
+        $page = Page::where('slug', $slug)->firstOrFail();
+        
+
+        $finalRes = [
+            'slug'   => $page->slug,
+            'title'  => $page->title,
+            'content' => $page->content,
+
+            // OG metadata returned as a nested object
+            'og' => [
+                'title'       => $page->og_title ?? $page->title,
+                'description' => $page->og_description
+                    ?? Str::limit(strip_tags($page->content), 160),
+                'image'       => $page->og_image,
+                'type'        => $page->og_type,
+                'locale'      => $page->og_locale,
+            ],
+
+            'updated_at' => $page->updated_at
+        ];
+
+
+        if(strtolower($slug) === 'about'){
+            $totalBlogs = Blog::count();
+            $totalClients = User::where('role', 'user')->count();
+            $totalVisits = Visit::count();
+            $finalRes['metrics'] = [
+                'total_blogs' => $totalBlogs,
+                'total_clients' => $totalClients,
+                'total_visits' => $totalVisits,
+            ];
+        }
+
+        return response()->json($finalRes);
+    }
+
+
+    /**
+     * Update a page and its OG metadata.
+     */
+    public function update(Request $request, string $slug)
+    {
+        $page = Page::where('slug', $slug)->firstOrFail();
+
+        // validation rules
+        $validated = $request->validate([
+            'title'           => 'required|string|max:255',
+            'content'         => 'required|string',
+
+            // Open Graph metadata validation
+            'og_title'        => 'nullable|string|max:255',
+            'og_description'  => 'nullable|string|max:500',
+            'og_image'        => 'nullable|string|max:500',
+            'og_type'         => 'nullable|string|max:50',
+            'og_locale'       => 'nullable|string|max:10',
+        ]);
+
+        // update page
+        $page->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Page updated successfully.',
+            'page'    => [
+                'slug'   => $page->slug,
+                'title'  => $page->title,
+                'content' => $page->content,
+
+                'og' => [
+                    'title'       => $page->og_title ?? $page->title,
+                    'description' => $page->og_description
+                        ?? Str::limit(strip_tags($page->content), 160),
+                    'image'       => $page->og_image,
+                    'type'        => $page->og_type,
+                    'locale'      => $page->og_locale,
+                ],
+
+                'updated_at' => $page->updated_at
+            ]
+        ]);
+    }
+
+
+    /**
+     * List all pages (for admin dashboard table).
      */
     public function index()
     {
-        //
+        $pages = Page::select('id', 'slug', 'title', 'updated_at')->get();
+
+        return response()->json($pages);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function sitemap()
     {
-        //
+        $pages = Page::select('slug', 'updated_at')->get()->map(function ($pageItem) {
+            return [
+                'loc' => env('FRONTEND_URL') . '/' . $pageItem->slug,
+                'lastMod' => $pageItem->updated_at->toIso8601String(),
+            ];
+        });;
+
+        $arLangId = Language::where('code', 'ar')->first()->id;
+        $slugs = BlogTranslation::where('language_id', $arLangId)
+            ->select('slug', 'updated_at')
+            ->get()->map(function ($blogTranslation) {
+                return [
+                    'loc' => env('FRONTEND_URL') . '/blog/' . $blogTranslation->slug,
+                    'lastMod' => $blogTranslation->updated_at->toIso8601String(),
+                ];
+            });;
+
+
+        return response()->json($pages->merge($slugs));
     }
 
+
     /**
-     * Store a newly created resource in storage.
+     * Create a new static page (admin use).
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'slug'            => 'required|string|unique:pages,slug',
+            'title'           => 'required|string|max:255',
+            'content'         => 'required|string',
+
+            'og_title'        => 'nullable|string|max:255',
+            'og_description'  => 'nullable|string|max:500',
+            'og_image'        => 'nullable|string|max:500',
+            'og_type'         => 'nullable|string|max:50',
+            'og_locale'       => 'nullable|string|max:10',
+        ]);
+
+        $page = Page::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Page created successfully.',
+            'page' => $page
+        ], 201);
     }
 
+
     /**
-     * Display the specified resource.
+     * Delete a static page.
      */
-    public function show($slug)
+    public function destroy(string $slug)
     {
         $page = Page::where('slug', $slug)->firstOrFail();
-        return response()->json($page);
+
+        $page->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Page deleted successfully.'
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Page $page)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Page $page)
+    public function prerenderRoutes()
     {
-        //
-    }
+        $pages = Page::select('slug')->get()->map(function ($pageItem) {
+            return '/' . $pageItem->slug;
+        });
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Page $page)
-    {
-        //
+        $arLangId = Language::where('code', 'ar')->first()->id;
+        $blogSlugs = BlogTranslation::where('language_id', $arLangId)
+            ->select('slug')
+            ->get()->map(function ($blogTranslation) {
+                return '/blog/' . $blogTranslation->slug;
+            });
+        $servicesSlugs = ServiceTranslation::where('language_id', $arLangId)
+            ->select('slug')
+            ->get()->map(function ($serviceTranslation) {
+                return '/services/' . $serviceTranslation->slug;
+            });
+
+        return response()->json(array_merge(
+            $pages->toArray(),
+            $blogSlugs->toArray(),
+            $servicesSlugs->toArray()
+        ));
     }
 }

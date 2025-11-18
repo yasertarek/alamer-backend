@@ -16,6 +16,7 @@ class WebsiteSettings extends Controller
                 $query->where('language_id', $this->getLanguageId());
             }
         ])->where('group', 'like', 'guest')
+        ->orderBy('order')
         ->get();
         
         $userNavbar = Navbar::with([
@@ -23,12 +24,14 @@ class WebsiteSettings extends Controller
                 $query->where('language_id', $this->getLanguageId());
             }
         ])->where('group', 'like', 'user')
+        ->orderBy('order')
         ->get();
         $adminNavbar = Navbar::with([
             'translations' => function ($query) {
                 $query->where('language_id', $this->getLanguageId());
             }
         ])->where('group', 'like', 'admin')
+        ->orderBy('order')
         ->get();
 
         return response()->json([

@@ -3,91 +3,76 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Comment;
 
 class BlogResource extends JsonResource
 {
     public function toArray($request)
     {
+        // Fetch first translation
         $translation = $this->translations->first();
-        $data = [
-            'id' => $this->id,
-            'picture' => $this->picture,
-            'createdAt' => $this->created_at,
-            'updatedAt' => $this->updated_at,
+
+        return [
+            'id'          => $this->id,
+            'picture'     => $this->picture,
+            'createdAt'   => $this->created_at,
+            'updatedAt'   => $this->updated_at,
+            'published_at'=> $this->published_at,
+            'active'      => $this->active,
+
+            // Categories
             'cats' => CatsResource::collection($this->whenLoaded('cats')),
-            'user_id' => $this->whenLoaded('blog', function () {
-                return $this->blog->user_id;
+
+            // Blog owner
+            'user_id' => $this->whenLoaded('blog', fn () => $this->blog->user_id),
+
+            // Translation fields
+            'slug'     => optional($translation)->slug,
+            'title'    => optional($translation)->title,
+            'subtitle' => optional($translation)->subtitle,
+            'content'  => optional($translation)->content,
+            'language' => optional($translation)->language,
+
+            // User info
+            'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
+
+            // Comments (paginated or count)
+            $this->mergeWhen($this->relationLoaded('comments'), function () {
+
+                // You ALREADY loaded comments via ->with('comments') so DO NOT query again.
+                $comments = $this->comments()
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(5);
+
+                return [
+                    'comments' => [
+                        'meta' => [
+                            'current_page' => $comments->currentPage(),
+                            'last_page'    => $comments->lastPage(),
+                            'per_page'     => $comments->perPage(),
+                            'total'        => $comments->total(),
+                        ],
+                        'links' => [
+                            'first' => $comments->url(1),
+                            'last'  => $comments->url($comments->lastPage()),
+                            'prev'  => $comments->previousPageUrl(),
+                            'next'  => $comments->nextPageUrl(),
+                        ],
+                        'data' => CommentResource::collection($comments->items()),
+                    ]
+                ];
             }),
-            'published_at' => $this->published_at,
-            'active' => $this->active,
-            'slug' => $translation ? $translation->slug : null,
-            'title' => $translation ? $translation->title : null,
-            'subtitle' => $translation ? $translation->subtitle : null,
-            'content' => $translation ? $translation->content : null,
-            'language' => $translation ? $translation->language : null,
-            'user' => $this->whenLoaded('user', function () {
-                return new UserResource($this->user);
-            }),
+
+            $this->mergeWhen(! $this->relationLoaded('comments'), [
+                'commentsCount' => $this->comments_count,
+            ]),
+
+            // Reactions (collection or count)
+            'reactions' => $this->whenLoaded('reactions', fn () => ReactionResource::collection($this->reactions)),
+
+            $this->mergeWhen(! $this->relationLoaded('reactions'), [
+                'reactionsCount' => $this->reactions_count,
+            ]),
         ];
-
-            // dd($translations);
-            // $data['subtitle'] = BlogTranslationResource::collection($this->translations);
-            // $data['content'] = BlogTranslationResource::collection($this->translations);
-        
-        if ($this->resource->relationLoaded('comments')) {
-        $comments = Comment::where('blog_id', $this->id)->with('user')->orderBy('created_at', 'desc')->paginate(5);
-            $commentsCollection = CommentResource::collection($comments->items());
-            $data['comments'] = [
-                'meta' => [
-                    'current_page' => $comments->currentPage(),
-                    'last_page' => $comments->lastPage(),
-                    'per_page' => $comments->perPage(),
-                    'total' => $comments->total(),
-                ],
-                'links' => [
-                    'first' => $comments->url(1),
-                    'last' => $comments->url($comments->lastPage()),
-                    'prev' => $comments->previousPageUrl(),
-                    'next' => $comments->nextPageUrl(),
-                ],
-                'data' => $commentsCollection
-            ];
-        } else {
-            $data['commentsCount'] = $this->comments_count;
-        }
-
-        if ($this->resource->relationLoaded('reactions')) {
-            $data['reactions'] = ReactionResource::collection($this->reactions);
-        } else {
-            $data['reactionsCount'] = $this->reactions_count;
-        }
-
-        return $data;
-
-        // $data = [
-        //     'id' => $this->id,
-        //     'title' => $this->translations->first() ? $this->translations->first()->title : null,
-        //     'subtitle' => $this->translations->first() ? $this->translations->first()->subtitle : null,
-        //     'content' => $this->translations->first() ? $this->translations->first()->content : null,
-        //     'created_at' => $this->created_at,
-        //     'updated_at' => $this->updated_at,
-        //     'user' => new UserResource($this->whenLoaded('user')),
-        // ];
-
-        // if ($this->resource->relationLoaded('comments')) {
-        //     $data['comments'] = CommentResource::collection($this->comments);
-        // } else {
-        //     $data['comments_count'] = $this->comments_count;
-        // }
-
-        // if ($this->resource->relationLoaded('reaction')) {
-        //     $data['reaction'] = ReactionResource::collection($this->reaction);
-        // } else {
-        //     $data['reaction_count'] = $this->reaction_count;
-        // }
-
-        // return $data;
-
     }
 }

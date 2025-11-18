@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             // CommentsSeeder::class,
             // ReactionSeeder::class,
             NavbarSeeder::class,
+            LandingPageSectionsSeeder::class,
+            PagesSeeder::class,
         ]);
     }
 }
