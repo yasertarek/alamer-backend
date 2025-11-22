@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\LandingPageSection;
+use App\Models\Rating;
 
 class LandingPageSectionsSeeder extends Seeder
 {
@@ -63,6 +64,31 @@ class LandingPageSectionsSeeder extends Seeder
                     'image' => 'default/landing-cta-bg.webp',
                 ],
             ],
+            [
+                'key' => 'meta',
+                'order' => 5,
+                'data' => [
+                    'title' => "رؤية الخليج",
+                    'description' =>
+                    "كشف تسربات المياه بدون تكسير وعزل الاسطح والخزانات بأحدث الوسائل والأدوات",
+                    'keywords' => "رؤية الخليج, كشف تسربات المياه, عزل الاسطح, عزل الخزانات, عزل مائي, كشف تسربات بدون تكسير",
+
+                    'og' => [
+                        'title' => "رؤية الخليج",
+                        'description' =>
+                        "كشف تسربات المياه بدون تكسير وعزل الاسطح والخزانات بأحدث الوسائل والأدوات",
+                        'image' => 'default/landing-head.webp',
+                    ]
+                ]
+                    ],
+            [
+                'key' => 'testimonials',
+                'order' => 6,
+                'data' => [
+                    'title' => 'ماذا يقول عملاؤنا عنا',
+                    'rates' => Rating::with('user')->take(12)->orderBy('created_at')->get()
+                ]
+            ]
         ];
 
         foreach ($sections as $section) {

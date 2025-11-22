@@ -16,8 +16,16 @@ class ServiceTranslation extends Model
         'subtitle',
         'content',
         'slug',
+        'description',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'address',
     ];
 
+    protected $casts = [
+        'content' => 'array',
+    ];
     protected static function boot()
     {
         parent::boot();
@@ -32,7 +40,7 @@ class ServiceTranslation extends Model
     private static function generateSlug($title)
     {
         $slug = preg_replace('/\s+/u', '-', trim($title));
-        $slug = preg_replace('/[^\pL\pN\p{Arabic}_-]+/u', '', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
         return mb_strtolower($slug, 'UTF-8');
     }
 

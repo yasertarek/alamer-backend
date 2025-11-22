@@ -19,6 +19,7 @@ class ServiceResource extends JsonResource
             'slug'      => optional($translation)->slug,
             'title'     => optional($translation)->title,
             'subtitle'  => optional($translation)->subtitle,
+            'description' => optional($translation)->description,
             'content'   => optional($translation)->content,
             'language'  => optional($translation)->language,
             'address'  => optional($translation)->address,

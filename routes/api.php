@@ -22,6 +22,7 @@ use App\Http\Controllers\NavbarController;
 
 use App\Http\Controllers\VisitController;
 
+Route::get('/visits', [VisitController::class, 'index']);
 Route::post('/track-visit', [VisitController::class, 'track']);
 
 Route::post('/seo/analyze', [SeoController::class, 'analyze']);

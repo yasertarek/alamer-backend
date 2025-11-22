@@ -42,7 +42,7 @@ class Service extends Model
         $count = $ratings->count();
 
         if ($count === 0) {
-            return null; // no ratings yet
+            return 0; // no ratings yet
         }
 
         $middle = intdiv($count, 2);

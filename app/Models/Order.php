@@ -20,4 +20,9 @@ class Order extends Model
     {
         return $this->hasMany(Rating::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

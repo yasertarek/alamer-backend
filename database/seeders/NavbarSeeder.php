@@ -26,11 +26,6 @@ class NavbarSeeder extends Seeder
                 'ar' => 'حول',
                 'route' => '/about'
             ],
-            'contact' => [
-                'en' => 'Contact',
-                'ar' => 'اتصل',
-                'route' => '/contact-us'
-            ],
             'dashboard' => [
                 'en' => 'Dashboard',
                 'ar' => 'لوحة التحكم',

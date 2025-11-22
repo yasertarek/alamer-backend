@@ -126,9 +126,9 @@ class BlogController extends Controller
 
         // $slug = preg_replace('/\s+/u', '-', trim($title));
         // $slug = preg_replace('/[^\pL\pN\p{Arabic}_-]+/u', '', $slug); // Allow Arabic characters, letters, numbers, dashes, and underscores
-        $slug = preg_replace('/[^\p{L}\p{N}\-]+/u', '_', $title);
-        $tSlug = trim($slug, '_');
-        return mb_strtolower($tSlug, 'UTF-8');
+        $slug = preg_replace('/\s+/u', '-', trim($title));
+        $slug = preg_replace('/-+/', '-', $slug);
+        return mb_strtolower($slug, 'UTF-8');
     }
 
     public function getSelfBlogs(Request $request)

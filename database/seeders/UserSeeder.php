@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
 
         DB::table('users')->insert([
             [
-                'name'       => 'Regular User One',
+                'name'       => 'علي خالد',
                 'email'      => 'user1@example.com',
                 'password'   => Hash::make('password123'),
                 'role'       => 'user',
@@ -23,8 +23,48 @@ class UserSeeder extends Seeder
                 'updated_at' => $now,
             ],
             [
-                'name'       => 'Regular User Two',
+                'name'       => 'محمد عبدالعزيز',
                 'email'      => 'user2@example.com',
+                'password'   => Hash::make('password123'),
+                'role'       => 'user',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name'       => 'خالد أمير',
+                'email'      => 'user3@example.com',
+                'password'   => Hash::make('password123'),
+                'role'       => 'user',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name'       => 'عز الدين أحمد',
+                'email'      => 'user4@example.com',
+                'password'   => Hash::make('password123'),
+                'role'       => 'user',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name'       => 'فهد ماجد',
+                'email'      => 'user5@example.com',
+                'password'   => Hash::make('password123'),
+                'role'       => 'user',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name'       => 'عمر سالم',
+                'email'      => 'user6@example.com',
+                'password'   => Hash::make('password123'),
+                'role'       => 'user',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name'       => 'محمد خالد',
+                'email'      => 'user7@example.com',
                 'password'   => Hash::make('password123'),
                 'role'       => 'user',
                 'created_at' => $now,
