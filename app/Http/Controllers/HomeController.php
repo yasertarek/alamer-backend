@@ -106,10 +106,10 @@ class HomeController extends Controller
 
         $navbarType = 'guest';
         if ($user) {
-            if ($user->role) {
-                $navbarType = 'admin';
-            } else {
+            if ($user->role === 'user') {
                 $navbarType = 'user';
+            } else {
+                $navbarType = 'admin';
             }
         }
         // $navbarType = $request->input('navbar_type', 'Wguest');
