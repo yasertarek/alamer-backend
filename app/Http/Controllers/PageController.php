@@ -82,8 +82,8 @@ class PageController extends Controller
 
 
             $finalRes['services'] = ServiceResource::collection($services);
-            
-            
+
+
             $finalRes['clients'] = SecUserResource::collection($totalClients);
         }
 
@@ -149,26 +149,51 @@ class PageController extends Controller
 
     public function sitemap()
     {
-        $pages = Page::select('slug', 'updated_at')->get()->map(function ($pageItem) {
+        $frontendUrl = config('app.frontend_url'); // set FRONTEND_URL in config/app.php
+
+        // Get Arabic language id safely
+        $arLang = Language::where('code', 'ar')->first();
+        if (!$arLang) {
+            return response()->json(['error' => 'Arabic language not found'], 500);
+        }
+
+        // Pages
+        $pages = Page::select('slug', 'updated_at')->get()->map(function ($p) use ($frontendUrl) {
             return [
-                'loc' => env('FRONTEND_URL') . '/' . $pageItem->slug,
-                'lastMod' => $pageItem->updated_at->toIso8601String(),
+                'loc' => $frontendUrl . '/' . $p->slug,
+                'lastMod' => $p->updated_at->toIso8601String(),
             ];
-        });;
+        });
 
-        $arLangId = Language::where('code', 'ar')->first()->id;
-        $slugs = BlogTranslation::where('language_id', $arLangId)
+        // Blog posts (Arabic)
+        $slugs = BlogTranslation::where('language_id', $arLang->id)
             ->select('slug', 'updated_at')
-            ->get()->map(function ($blogTranslation) {
+            ->get()->map(function ($b) use ($frontendUrl) {
                 return [
-                    'loc' => env('FRONTEND_URL') . '/blog/' . $blogTranslation->slug,
-                    'lastMod' => $blogTranslation->updated_at->toIso8601String(),
+                    'loc' => $frontendUrl . '/blog/' . $b->slug,
+                    'lastMod' => $b->updated_at->toIso8601String(),
                 ];
-            });;
+            });
 
+        // Services (Arabic)
+        $serSlugs = ServiceTranslation::where('language_id', $arLang->id)
+            ->select('slug', 'updated_at')
+            ->get()->map(function ($s) use ($frontendUrl) {
+                return [
+                    'loc' => $frontendUrl . '/services/' . $s->slug,
+                    'lastMod' => $s->updated_at->toIso8601String(),
+                ];
+            });
 
-        return response()->json($pages->merge($slugs));
+        // Merge collections correctly
+        $result = $pages
+            ->concat($slugs)
+            ->concat($serSlugs)
+            ->values(); // clean numeric keys
+
+        return response()->json($result);
     }
+
 
 
     /**
