@@ -5,11 +5,14 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\LandingPageSection;
 use App\Models\Rating;
+use App\Models\Phone;
 
 class LandingPageSectionsSeeder extends Seeder
 {
     public function run()
     {
+        $phoneNumber = Phone::where('type', 'mobile')->first()->number;
+        $whatsNumber = Phone::where('type', 'whatsapp')->first()->number;
         $sections = [
             [
                 'key' => 'header',
@@ -19,7 +22,7 @@ class LandingPageSectionsSeeder extends Seeder
                     'heading' => '          مؤسسة رؤية الخليج لجميع أنواع العزل المائي<br />
           معًا، نضمن لكم حماية دائمة لمنازلكم...<br />
           خدمات عزل مبتكرة تحت رعايتكم',
-                    'phoneNumber' => '+966507228651',
+                    'phoneNumber' => $phoneNumber,
                     'phoneText' => 'اتصل بنا',
                 ],
             ],
@@ -28,9 +31,9 @@ class LandingPageSectionsSeeder extends Seeder
                 'order' => 2,
                 'data' => [
                     'title' => 'لحل مشاكل تسربات المياه وعزل الاسطح تواصل معنا الآن !',
-                    'phoneNumber' => '+966507228651',
+                    'phoneNumber' => $phoneNumber,
                     'phoneText' => 'اتصل بنا الآن',
-                    'whatsappNumber' => '+966507228651',
+                    'whatsappNumber' => $whatsNumber,
                     'whatsappText' => 'تواصل عبر واتساب',
                     'backgroundImage' => 'default/landing-head.webp',
                 ],
