@@ -14,13 +14,13 @@ class CreateServiceTranslationsTable extends Migration
             $table->foreignId('language_id')->constrained()->onDelete('cascade');
             $table->string('title')->unique();
             $table->text('subtitle');
-            $table->text('description');
+            // $table->text('description');
             $table->longText('content');
             $table->string('slug', 400)->unique();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('meta_keywords')->nullable();
-            $table->string('address');
+            $table->string('address')->nullable();
             $table->timestamps();
         });
     }
