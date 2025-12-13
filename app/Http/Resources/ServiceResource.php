@@ -34,6 +34,8 @@ class ServiceResource extends JsonResource
             'meta_description' => optional($translation)->meta_description,
             'meta_keywords' => optional($translation)->meta_keywords,
 
+            'cats' => CatsResource::collection($this->whenLoaded('cats')),
+
             // Rates list
             'rates' => RateResource::collection(
                 $this->whenLoaded('rates')
