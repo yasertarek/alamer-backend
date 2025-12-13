@@ -14,7 +14,7 @@ class OrdersSeeder extends Seeder
     public function run(): void
     {
         //
-        $users = \App\Models\User::all();
+        $users = \App\Models\User::where('role', 'user')->get();
         $services = \App\Models\Service::all();
         // Each user places between 1 to 3 orders
         $ratings = [

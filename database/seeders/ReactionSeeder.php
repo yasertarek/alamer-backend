@@ -19,7 +19,7 @@ class ReactionSeeder extends Seeder
     {
         $faker = Faker::create();
         $blogs = Blog::all();
-        $users = User::all();
+        $users = User::where('role', 'user')->get();
 
         foreach ($blogs as $blog) {
             foreach ($users as $user) {
