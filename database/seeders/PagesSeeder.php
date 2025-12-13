@@ -4,11 +4,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Page;
+use App\Models\Phone;
 
 class PagesSeeder extends Seeder
 {
     public function run(): void
     {
+        $phoneNumber = Phone::where('type', 'mobile')->first()->number;
+        $whatsNumber = Phone::where('type', 'whatsapp')->first()->number;
         $pages = [
 
             // -----------------------
@@ -132,8 +135,8 @@ class PagesSeeder extends Seeder
                 'og_type' => 'website',
                 'og_locale' => 'ar_AR',
                 'content' => [
-                    'phone' => '+966500000000',
-                    'whatsapp' => '+966500000000',
+                    'phone' => $phoneNumber,
+                    'whatsapp' => $whatsNumber,
                     'email' => 'info@ruyat-alkhaleej.sa',
                     'address' => 'الرياض – المملكة العربية السعودية',
                     'working_hours' => 'متواجدون لخدمتكم 24 ساعة طوال الأسبوع',
@@ -197,7 +200,24 @@ class PagesSeeder extends Seeder
                 'og_type' => 'website',
                 'og_locale' => 'ar_AR',
                 'content' => [
-                    'body' => 'تقدم مؤسسة رؤية الخليج مجموعة متكاملة من خدمات كشف تسربات المياه وعزل الأسطح في الرياض وباقي مناطق السعودية. نعتمد على أفضل التقنيات والأجهزة الحديثة لضمان كشف دقيق بدون تكسير، بالإضافة إلى تنفيذ أعمال العزل المائي والحراري لضمان حماية المباني من مشاكل الرطوبة وتسربات المياه. فريقنا يمتلك خبرة واسعة في اكتشاف التسربات المخفية ومعالجة أسبابها بطريقة احترافية مع توفير ضمان على الأعمال المقدمة.'
+                    'header' => [
+                        'title' => [
+                            'خبراء كشف تسربات المياه',
+                            'وعزل الأسطح في الرياض'
+                        ],
+                        'description' => 'نحمي منزلك بأحدث التقنيات الألمانية للكشف بدون تكسير. خدمة سريعة، نتائج مضمونة، وضمان 10 سنوات',
+                        'banner' => [
+                            'title' => 'الشركة الأعلى تقييماً في الرياض',
+                            'state' => 1,
+                            'icon' => 'material-symbols:star-rate-rounded',
+                        ],
+                        'cta' => [
+                            'text' => 'اتصل بنا الآن',
+                        ],
+                        'servicesBtn' => [
+                            'text' => 'تعرف على خدماتنا',
+                        ],
+                    ],
                 ],
                 'language' => 'ar',
             ],

@@ -10,15 +10,15 @@ class LandingPageValidationService
             'header' => [
                 'backgroundImage' => 'required|string',
                 'heading' => 'required|string|max:255',
-                'phoneNumber' => 'required|string|max:20',
+                'phoneNumber' => 'required|string|max:20|exists:phones,number',
                 'phoneText' => 'required|string|max:255',
             ],
 
             'cta' => [
                 'title' => 'required|string|max:255',
-                'phoneNumber' => 'required|string|max:20',
+                'phoneNumber' => 'required|string|max:20|exists:phones,number',
                 'phoneText' => 'required|string|max:255',
-                'whatsappNumber' => 'required|string|max:20',
+                'whatsappNumber' => 'required|string|max:20|exists:phones,number',
                 'whatsappText' => 'required|string|max:255',
             ],
 
