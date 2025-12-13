@@ -103,4 +103,9 @@ class Service extends Model
             ->groupBy('service_id');
     }
 
+        public function cats()
+    {
+        return $this->belongsToMany(Cats::class, 'cats_services');
+    }
+
 }
