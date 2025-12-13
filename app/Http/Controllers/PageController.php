@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 
 use App\Http\Resources\ServiceResource;
 use App\Http\Resources\SecUserResource;
+use App\Http\Resources\BlogResource;
 use App\Models\Language;
 use App\Models\BlogTranslation;
 
@@ -87,6 +88,22 @@ class PageController extends Controller
             $finalRes['clients'] = SecUserResource::collection($totalClients);
         }
 
+        if (strtolower($slug) === 'blog') {
+            $arLangId = Language::where('code', 'ar')->first()->id;
+            $blog = Blog::with([
+                'translations' => function ($query) use ($arLangId) {
+                    $query->where('language_id', $arLangId);
+                },
+                'user',
+            ])->where('active', 1)
+                ->select('blogs.*')
+                ->withCount(['comments', 'reactions'])
+                ->orderBy('created_at', 'desc')->paginate(10);
+
+
+            $finalRes['blog'] = BlogResource::collection($blog);
+        }
+
         return response()->json($finalRes);
     }
 
@@ -142,7 +159,7 @@ class PageController extends Controller
      */
     public function index()
     {
-        $pages = Page::select('id', 'slug', 'title', 'updated_at')->get();
+        $pages = Page::paginate(10);
 
         return response()->json($pages);
     }
