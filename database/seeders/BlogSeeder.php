@@ -174,8 +174,8 @@ class BlogSeeder extends Seeder
                 'user_id' => $user->id,
                 'picture' => 'blog_pictures/' . $pictures[$i],
                 'is_featured' => $faker->randomKey([true, false]),
-                'active' => rand(0, 1),
-                'published_at' => null
+                'active' => 1,
+                'published_at' => now(),
             ]);
 
             $cats = $catsAll->random(rand(1, 3))->pluck('id');
