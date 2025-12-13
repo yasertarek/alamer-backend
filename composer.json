@@ -10,7 +10,9 @@
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "mews/purifier": "^3.4",
         "spatie/laravel-permission": "^6.9",
+        "stevebauman/purify": "^6.3",
         "torann/geoip": "^3.0",
         "voku/portable-ascii": "^2.0"
     },

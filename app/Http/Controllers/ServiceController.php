@@ -8,6 +8,8 @@ use App\Models\Language;
 use App\Models\ServiceTranslation;
 use App\Http\Resources\ServiceResource;
 use Illuminate\Support\Facades\Auth;
+use Mews\Purifier\Facades\Purifier;
+use Illuminate\Http\UploadedFile;
 
 
 class ServiceController extends Controller
@@ -28,6 +30,7 @@ class ServiceController extends Controller
                 $query->where('language_id', $language->id);
             },
             'user',
+            'cats',
             'rates'
         ])->select('services.*');
 
@@ -51,45 +54,109 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'picture' => 'nullable|image|max:2048',
+            'picture' => 'required|image|max:2048',
+
             'translations' => 'required|array',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:255|unique:service_translations,title',
             'translations.*.subtitle' => 'required|string|max:255',
-            'translations.*.content' => 'required|string',
+
+            'translations.*.content' => 'required|array',
+            'translations.*.content.*.title' => 'required|string',
+            'translations.*.content.*.content' => 'required|string',
+            'translations.*.content.*.picture' => 'nullable|image|max:2048',
         ]);
 
-        $service = new Service();
+        // $service = new Service();
+        // $service->user_id = Auth::id();
+        $picPath = $request->file('picture')->store('service_pictures', 'public');
 
-        $service->user_id = Auth::id();
+        // ✅ Create blog
+        $service = Service::create([
+            'user_id' => Auth::id(),
+            'picture' => $picPath,
+            'active' => 1,
+        ]);
 
-        if ($request->hasFile('picture')) {
-            $service->picture = $request->file('picture')->store('service_pictures', 'public');
-        }
-
-        $service->save();
+        // $service->save();
 
         foreach ($validatedData['translations'] as $translation) {
-            $translation['service_id'] = $service->id;
-            ServiceTranslation::create($translation);
+
+            $blocks = $translation['content']; // sections/blocks
+
+            foreach ($blocks as $blockIndex => $block) {
+
+                // 🔥 THIS is where we actually sanitize your Tiptap HTML
+                $blocks[$blockIndex]['content'] = Purifier::clean($block['content'], [
+                    'HTML.SafeIframe' => true,
+                    'HTML.Allowed'    => '
+                    p,br,b,strong,i,em,u,span,blockquote,ul,ol,li,
+                    h1,h2,h3,h4,h5,h6,
+                    code,pre,
+                    a[href|title|target],
+                    img[src|alt|width|height],
+                    mark,del,ins,
+                    table,thead,tbody,tr,th,td
+                ',
+                    'AutoFormat.AutoParagraph' => false,
+                    'CSS.AllowedProperties' => [
+                        'text-align',
+                        'color',
+                        'background-color',
+                        'font-weight',
+                        'font-style'
+                    ],
+                ]);
+
+                // Handle optional image for each block
+                if (isset($block['picture']) && $block['picture'] instanceof UploadedFile) {
+                    $path = $block['picture']->store('service_content_pictures', 'public');
+                    $blocks[$blockIndex]['picture'] = $path;
+                } else {
+                    $blocks[$blockIndex]['picture'] = $block['picture'] ?? null;
+                }
+            }
+
+            ServiceTranslation::create([
+                'service_id'  => $service->id,
+                'language_id' => $translation['language_id'],
+                'title'       => $translation['title'],
+                'subtitle'    => $translation['subtitle'],
+                'content'     => $blocks, // cast to json in model
+            ]);
         }
 
-        return response()->json(["data" => $service->load('translations'), "message" => "تم إنشاء الخدمة بنجاح !"], 201);
+        return response()->json([
+            "data"    => $service->load('translations'),
+            "message" => "تم إنشاء الخدمة بنجاح !",
+        ], 201);
     }
+
 
     public function show($slug, Request $request)
     {
         $languageCode = $request->header('Language-Code', 'ar');
-        $language = Language::where('code', $languageCode)->firstOrFail();
+        $language = Language::where('code', $languageCode)->first();
+
+        if (! $language) {
+            return response()->json(['message' => 'Language not supported.'], 400);
+        }
 
         $serviceTranslation = ServiceTranslation::where('slug', $slug)
             ->where('language_id', $language->id)
-            ->firstOrFail();
+            ->first();
 
-        $service = Service::with(['translations' => function ($query) use ($language) {
-                $query->where('language_id', $language->id);
-            }])
-            ->findOrFail($serviceTranslation->service_id);
+        if (! $serviceTranslation) {
+            return response()->json(['message' => 'لا توجد مقالة بهذا المحتوى !'], 404);
+        }
+
+        $service = Service::with(['rates.user', 'translations' => function ($query) use ($language) {
+            $query->where('language_id', $language->id);
+        }])->find($serviceTranslation->service_id);
+
+        if (! $service) {
+            return response()->json(['message' => 'لا توجد مقالة !'], 404);
+        }
 
         return new ServiceResource($service);
     }
@@ -115,8 +182,8 @@ class ServiceController extends Controller
 
         foreach ($validatedData['translations'] as $translation) {
             $serviceTranslation = ServiceTranslation::where('service_id', $service->id)
-                                                    ->where('language_id', $translation['language_id'])
-                                                    ->first();
+                ->where('language_id', $translation['language_id'])
+                ->first();
 
             if ($serviceTranslation) {
                 $serviceTranslation->update($translation);
