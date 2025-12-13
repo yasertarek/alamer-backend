@@ -13,8 +13,9 @@ use App\Http\Controllers\WebsiteSettings;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\AppConfigController;
 
-// Middleares
+// Middlewares
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\OptionalAuth;
 // use App\Http\Middleware\EnsureBlogOwner;
@@ -138,3 +139,5 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/pages/{slug}', [PageController::class, 'show']);
+Route::get('/pages', [PageController::class, 'index']);
+Route::middleware([OptionalAuth::class])->get('/app-config', [AppConfigController::class, 'getConfig']);

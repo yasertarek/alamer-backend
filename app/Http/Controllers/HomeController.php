@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\Blog;
 use App\Models\Service;
-use App\Models\Navbar;
 use App\Models\Language;
-use App\Models\Cats;
 use App\Models\LandingPageSection;
 use Illuminate\Http\Request;
-use App\Http\Resources\NavbarResource;
 use App\Http\Resources\BlogResource;
 use App\Http\Resources\ServiceResource;
 
@@ -19,8 +16,6 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-
-        $languages = Language::all();
 
         $landingPageSections = LandingPageSection::orderBy('order')->get()->mapWithKeys(fn($section) => [
             $section->key => $section->data
@@ -83,53 +78,12 @@ class HomeController extends Controller
             ->take(5)
             ->get();
 
-
-        $cats = Cats::all();
-
-
-
-        // $languageCode = $request->header('Language-Code', 'ar'); // Default to 'ar' (Arabic)
-
-        // $language = Language::where('code', $languageCode)->firstOrFail();
-
-        // Fetch the navbar items with translations for the specific language
-
-        $user = null;
-        if (Auth::check()) {
-            // The user is logged in
-            $user = Auth::user();
-        } else {
-            // The user is not logged in
-        }
-
-        // dd($user->role);
-
-        $navbarType = 'guest';
-        if ($user) {
-            if ($user->role === 'user') {
-                $navbarType = 'user';
-            } else {
-                $navbarType = 'admin';
-            }
-        }
-        // $navbarType = $request->input('navbar_type', 'Wguest');
-        $navbar = Navbar::with([
-            'translations' => function ($query) {
-                $query->where('language_id', $this->getLanguageId());
-            }
-        ])->where('group', 'like', $navbarType)
-            ->orderBy('order')
-            ->get();
-
         return response()->json([
-            'navbar' => NavbarResource::collection($navbar),
             'featuredBlogs' => BlogResource::collection($featuredBlogs),
             'recentBlogs' => BlogResource::collection($recentBlogs),
             'popularBlogs' => BlogResource::collection($popularBlogs),
             'featuredServices' => ServiceResource::collection($featuredServices),
             'recentServices' => ServiceResource::collection($recentServices),
-            "languages" => $languages,
-            "cats" => $cats,
             "sections" => $landingPageSections,
         ]);
     }
