@@ -14,6 +14,10 @@ class BlogTranslation extends Model
     use HasFactory;
     protected $fillable = ['blog_id', 'language_id', 'title', 'subtitle', 'content', 'slug'];
 
+    protected $casts = [
+        'content' => 'array',
+    ];
+
     public function blog()
     {
         return $this->belongsTo(Blog::class);

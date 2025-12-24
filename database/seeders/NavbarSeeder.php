@@ -36,6 +36,11 @@ class NavbarSeeder extends Seeder
                 'ar' => 'الخدمات',
                 'route' => '/services'
             ],
+            'blog' => [
+                'en' => 'Blog',
+                'ar' => 'المدونة',
+                'route' => '/blog'
+            ],
         ];
 
         foreach ($roles as $role) {

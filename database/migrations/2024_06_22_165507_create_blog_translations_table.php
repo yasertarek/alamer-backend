@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('slug', 400)->unique();
             $table->text('subtitle')->nullable();
             $table->text('content');
+            $table->string('meta_title')->nullable();
+            $table->text('meta_description')->nullable();
             $table->timestamps();
         
             $table->unique(['blog_id', 'language_id']);
